@@ -1,0 +1,89 @@
+--1. Can a user show up more than once in the activity table? Yes or no, and why?
+
+ SELECT uid, count(*) AS row_count
+ FROM activity
+ GROUP BY uid
+ HAVING COUNT(*) >1
+
+--2. What type of join should we use to join the users table to the activity table?
+
+SELECT *
+FROM activity a
+LEFT JOIN users u ON a.uid=u.id
+
+--3. What SQL function can we use to fill in NULL values?
+SELECT u.id, a.device, a.spent, country, Coalesce (gender, 'unknown') AS gender
+FROM activity a
+LEFT JOIN users u ON a.uid=u.id
+
+--4. What are the start and end dates of the experiment?
+SELECT Min(join_dt) AS start_date, MAX(join_dt) AS end_date
+FROM groups
+
+--5. How many total users were in the experiment?
+SELECT COUNT(DISTINCT id) AS total_user
+FROM users
+
+--6. How many users were in the control and treatment groups?
+SELECT "group", count (distinct u.id) AS total_user
+FROM users u
+LEFT JOIN groups g ON u.id = g.uid
+GROUP BY "group"
+
+--7. What was the conversion rate of all users?
+
+Select 
+      u.id AS user_id,
+      u.country,
+      u.gender,
+      g.device AS device_type,
+      g."group" AS test_group,
+      CASE WHEN SUM(a.spent) >0 THEN 1 ELSE 0 END AS converter,
+      COALESCE(SUM(a.spent), 0) AS total_spent
+FROM users u
+JOIN groups g ON u.id = g.uid
+LEFT JOIN activity a ON u.id=a.uid
+GROUP BY u.id, u.country, u.gender, g.device, g."group";
+
+WITH UserActivity AS (
+    SELECT
+        u.id AS user_id,
+        MAX(CASE WHEN a.uid IS NOT NULL THEN 1 ELSE 0 END) AS converted
+    FROM users u
+    LEFT JOIN activity a ON u.id = a.uid
+    GROUP BY u.id
+)
+SELECT
+    SUM(converted) AS total_conversions,
+    COUNT(user_id) AS total_users,
+    SUM(converted) * 1.0 / COUNT(user_id) AS conversion_rate
+FROM UserActivity;
+
+--8. What is the user conversion rate for the control and treatment groups?
+SELECT
+    u.test_group AS test_group,
+    SUM(u.converted) AS total_conversions,
+    COUNT(u.user_id) AS total_users,
+    SUM(u.converted) * 1.0 / COUNT(u.user_id) AS conversion_rate
+FROM
+(
+    SELECT
+        u.id AS user_id,
+        g."group" AS test_group,
+        MAX(CASE WHEN a.uid IS NOT NULL THEN 1 ELSE 0 END) AS converted
+    FROM users u
+    JOIN groups g ON u.id = g.uid
+    LEFT JOIN activity a ON u.id = a.uid
+    GROUP BY u.id, g."group"
+) AS u
+GROUP BY u.test_group;
+
+--9. What is the average amount spent per user?
+SELECT
+    g."group" AS test_group,
+    AVG(COALESCE(a.spent, 0.0)) AS average_amount_spent
+FROM users u
+LEFT JOIN activity a ON u.id = a.uid
+JOIN groups g ON u.id = g.uid
+GROUP BY g."group";
+
