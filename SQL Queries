@@ -1,4 +1,8 @@
 --1. Can a user show up more than once in the activity table? Yes or no, and why?
+Yes, users may appear more than once in the activity table, if they engage in multiple activities or transactions, they will have multiple entries in the table, resulting in their user ID appearing more than once.
+This question is important to determine whether individual users can appear multiple times in the activity table. 
+It affects how we calculate and interpret user engagement and conversion rates. 
+If users can appear more than once, it's crucial to handle their multiple interactions appropriately.
 
  SELECT uid, count(*) AS row_count
  FROM activity
@@ -6,12 +10,18 @@
  HAVING COUNT(*) >1
 
 --2. What type of join should we use to join the users table to the activity table?
+Since, we want to include all users from the "users" table and 
+their purchase activity if available, we should use a LEFT JOIN. 
 
 SELECT *
 FROM activity a
 LEFT JOIN users u ON a.uid=u.id
 
 --3. What SQL function can we use to fill in NULL values?
+To fill in NULL values, we can use the SQL COALESCE() function. 
+The COALESCE() function returns the first non-NULL value in a list of expressions. 
+we can use it to replace NULL values with a specified default value.
+
 SELECT u.id, a.device, a.spent, country, Coalesce (gender, 'unknown') AS gender
 FROM activity a
 LEFT JOIN users u ON a.uid=u.id
