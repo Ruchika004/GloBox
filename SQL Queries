@@ -7,7 +7,7 @@ If users can appear more than once, it's crucial to handle their multiple intera
  SELECT uid, count(*) AS row_count
  FROM activity
  GROUP BY uid
- HAVING COUNT(*) >1
+ HAVING COUNT(*) >1;
 
 --2. What type of join should we use to join the users table to the activity table?
 Since, we want to include all users from the "users" table and 
@@ -15,7 +15,7 @@ their purchase activity if available, we should use a LEFT JOIN.
 
 SELECT *
 FROM activity a
-LEFT JOIN users u ON a.uid=u.id
+LEFT JOIN users u ON a.uid=u.id;
 
 --3. What SQL function can we use to fill in NULL values?
 To fill in NULL values, we can use the SQL COALESCE() function. 
@@ -24,21 +24,21 @@ we can use it to replace NULL values with a specified default value.
 
 SELECT u.id, a.device, a.spent, country, Coalesce (gender, 'unknown') AS gender
 FROM activity a
-LEFT JOIN users u ON a.uid=u.id
+LEFT JOIN users u ON a.uid=u.id;
 
 --4. What are the start and end dates of the experiment?
 SELECT Min(join_dt) AS start_date, MAX(join_dt) AS end_date
-FROM groups
+FROM groups;
 
 --5. How many total users were in the experiment?
 SELECT COUNT(DISTINCT id) AS total_user
-FROM users
+FROM users;
 
 --6. How many users were in the control and treatment groups?
 SELECT "group", count (distinct u.id) AS total_user
 FROM users u
 LEFT JOIN groups g ON u.id = g.uid
-GROUP BY "group"
+GROUP BY "group";
 
 --7. What was the conversion rate of all users?
 
